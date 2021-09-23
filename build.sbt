@@ -4,6 +4,12 @@ val MunitVersion = "0.7.27"
 val LogbackVersion = "1.2.5"
 val MunitCatsEffectVersion = "1.0.5"
 
+// Alpine base image with JRE 11 is chosen to be more lightweight.
+// `AshScriptPlugin` is enabled because Alpine does not have `bash` which would affect
+// starting a container as `docker run --rm -p 8080:8080 <image-id>`.
+// However, Alpine has `sh`, so it's possible to login into the running container
+// as `docker exec -it <container-id> /bin/sh`.
+
 lazy val root = (project in file("."))
   .settings(
     organization := "org.itn",
@@ -25,5 +31,9 @@ lazy val root = (project in file("."))
     addCompilerPlugin("com.olegpy"    %% "better-monadic-for" % "0.3.1"),
     testFrameworks += new TestFramework("munit.Framework")
   )
-  .enablePlugins(JavaAppPackaging, DockerPlugin)
+  .enablePlugins(JavaAppPackaging, DockerPlugin, AshScriptPlugin)
 
+Compile / mainClass := Some("org.itn.simpleserver.Main")
+
+dockerBaseImage := "adoptopenjdk/openjdk11:jre-11.0.10_9-alpine"
+dockerExposedPorts ++= Seq(8080)
